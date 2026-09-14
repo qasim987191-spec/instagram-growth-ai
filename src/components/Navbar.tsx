@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { NavTab, InstagramProfile } from '../types';
-import { Sparkles, Key, Menu, X, Download } from 'lucide-react';
+import { Key, Menu, X } from 'lucide-react';
 import { InstagramIcon } from './InstagramIcon';
 
 interface NavbarProps {
@@ -19,24 +19,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   currentTab,
   onTabChange,
   profile,
-  isDemoMode,
   onOpenConnectModal,
-  onToggleDemoMode,
   mobileMenuOpen,
   setMobileMenuOpen,
-  onOpenInstallModal,
 }) => {
-  const [isStandalone, setIsStandalone] = useState(false);
-
-  useEffect(() => {
-    // Detect if app is already installed or launched as PWA / standalone app
-    const isAppInstalled =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.matchMedia('(display-mode: fullscreen)').matches ||
-      (window.navigator as any).standalone === true;
-    setIsStandalone(isAppInstalled);
-  }, []);
-
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[#222538] bg-[#0E1017]/95 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
@@ -62,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Active Creator Pill - Click to Change / Connect Profile */}
+          {/* Active Creator Pill */}
           <button
             onClick={onOpenConnectModal}
             className="flex items-center gap-2 px-2.5 py-1.5 rounded-full bg-[#181A26] hover:bg-[#202334] border border-[#2A2E44] text-xs transition cursor-pointer"
@@ -91,17 +77,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <InstagramIcon className="w-3.5 h-3.5" />
             <span className="hidden xs:inline sm:inline">Connect IG</span>
           </button>
-
-          {/* Download & Install App (Only shows if opened inside normal browser, hides when installed) */}
-          {!isStandalone && onOpenInstallModal && (
-            <button
-              onClick={onOpenInstallModal}
-              className="p-2 rounded-lg text-pink-300 bg-pink-500/15 hover:bg-pink-500/25 border border-pink-500/30 transition cursor-pointer"
-              title="Install App to Home Screen"
-            >
-              <Download className="w-4 h-4 text-pink-400" />
-            </button>
-          )}
 
           {/* Settings shortcut */}
           <button
