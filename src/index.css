@@ -6,38 +6,44 @@
   color-scheme: dark;
 }
 
-/* Base Body Styles */
-html, body {
+/* Base Body Styles - Normal native touch scroll */
+html {
   margin: 0;
   padding: 0;
   width: 100%;
-  max-width: 100vw;
+  overflow-x: hidden;
+  touch-action: pan-y;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100%;
   background-color: #0B0C10;
   color: #E2E8F0;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  overflow-x: hidden !important;
-  /* Natural smooth touch scrolling without rubberband bounce */
-  overscroll-behavior-y: none;
-  overscroll-behavior-x: none;
+  overflow-x: hidden;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 #root {
   width: 100%;
-  max-width: 100vw;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden !important;
+  overflow-x: hidden;
 }
 
-/* Prevent accidental text highlight on tap / drag */
+/* Prevent accidental blue tap highlights */
 * {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
 }
 
-/* Allow normal text selection only in inputs and readable text blocks */
+/* Allow normal text selection in inputs */
 input, textarea, [contenteditable="true"] {
   user-select: text !important;
   -webkit-user-select: text !important;
