@@ -80,3 +80,17 @@ input, textarea {
   user-select: text !important;
   -webkit-user-select: text !important;
 }
+
+/* Prevent accidental horizontal page shifting on mobile devices */
+html, body {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+  touch-action: pan-y !important;
+}
+
+#root {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
+}

@@ -61,6 +61,9 @@ export const App: React.FC = () => {
   const [growthPlan] = useState(DEMO_GROWTH_PLAN);
   const [weeklyReport] = useState(DEMO_WEEKLY_REPORT);
 
+  const bestReel = [...reels].sort((a, b) => b.views - a.views)[0];
+  const weakestReel = [...reels].sort((a, b) => a.views - b.views)[0];
+
   const handleConnected = (newProfile: InstagramProfile) => {
     setProfile(newProfile);
     setIsDemoMode(false);
@@ -74,7 +77,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0B10] text-gray-100 flex flex-col font-sans overflow-x-hidden selection:bg-pink-500/30 selection:text-pink-200">
+    <div className="min-h-screen bg-[#0A0B10] text-gray-100 flex flex-col font-sans overflow-x-hidden w-full max-w-full selection:bg-pink-500/30 selection:text-pink-200">
       {/* Top Navbar */}
       <Navbar
         currentTab={currentTab}
@@ -88,9 +91,9 @@ export const App: React.FC = () => {
         onOpenInstallModal={() => setIsInstallModalOpen(true)}
       />
 
-      {/* Main Layout: 100% full-width responsive without horizontal scroll */}
-      <div className="flex-1 flex w-full mx-auto max-w-7xl">
-        {/* Desktop Sidebar (Only visible on wide screens md+) */}
+      {/* Main Layout - 100% responsive full screen */}
+      <div className="flex-1 flex w-full max-w-7xl mx-auto overflow-x-hidden">
+        {/* Desktop Sidebar (Hidden on mobile) */}
         {currentTab !== 'landing' && (
           <div className="hidden md:block w-64 flex-shrink-0">
             <Sidebar
@@ -101,9 +104,9 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Mobile Fullscreen Slide-out Menu */}
+        {/* Mobile Slide-out Menu */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 bg-black/85 md:hidden pt-16 px-3 pb-24 overflow-y-auto animate-in fade-in">
+          <div className="fixed inset-0 z-50 bg-black/85 md:hidden pt-16 px-3 pb-24 overflow-y-auto">
             <div className="bg-[#12141F] rounded-2xl border border-[#23273D] p-3 shadow-2xl">
               <Sidebar
                 currentTab={currentTab}
@@ -121,7 +124,7 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* Main Content Area - Full width on mobile, comfortable padding */}
+        {/* Main Content Area - Full width, no horizontal scroll, comfortable padding */}
         <main className="flex-1 w-full min-w-0 p-3 sm:p-5 lg:p-8 pb-24 md:pb-8 overflow-x-hidden">
           {currentTab === 'landing' && (
             <LandingPage
@@ -174,7 +177,7 @@ export const App: React.FC = () => {
           )}
 
           {currentTab === 'hooks' && (
-            <HookGeneratorView />
+            <HookGeneratorView initialNiche={profile.niche} />
           )}
 
           {currentTab === 'captions' && (
@@ -186,31 +189,35 @@ export const App: React.FC = () => {
           )}
 
           {currentTab === 'ideas' && (
-            <ReelIdeasView />
+            <ReelIdeasView
+              niche={profile.niche}
+              topReels={reels}
+            />
           )}
 
-          {currentTab === 'best-time' && (
-            <BestPostingTimeView postingTime={postingTime} />
+          {currentTab === 'posting-time' && (
+            <BestPostingTimeView data={postingTime} />
           )}
 
           {currentTab === 'growth-plan' && (
-            <GrowthPlanView plan={growthPlan} />
+            <GrowthPlanView initialPlan={growthPlan} />
           )}
 
           {currentTab === 'reports' && (
             <WeeklyReportView
-              profile={profile}
-              scores={scores}
-              reels={reels}
               report={weeklyReport}
+              bestReel={bestReel}
+              weakestReel={weakestReel}
             />
           )}
 
           {currentTab === 'settings' && (
             <SettingsView
               profile={profile}
+              isDemoMode={isDemoMode}
+              onProfileUpdated={setProfile}
               onOpenConnectModal={() => setIsConnectModalOpen(true)}
-              onDisconnect={handleUseDemo}
+              onSwitchToDemo={handleUseDemo}
             />
           )}
         </main>
@@ -225,7 +232,7 @@ export const App: React.FC = () => {
         />
       )}
 
-      {/* Modals */}
+      {/* Official Connect Instagram Modal */}
       <ConnectModal
         isOpen={isConnectModalOpen}
         onClose={() => setIsConnectModalOpen(false)}
@@ -233,6 +240,7 @@ export const App: React.FC = () => {
         onUseDemo={handleUseDemo}
       />
 
+      {/* Install App Modal */}
       <InstallAppModal
         isOpen={isInstallModalOpen}
         onClose={() => setIsInstallModalOpen(false)}
@@ -240,3 +248,5 @@ export const App: React.FC = () => {
     </div>
   );
 };
+
+export default App;

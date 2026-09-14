@@ -138,7 +138,7 @@ export const BestPostingTimeView: React.FC<BestPostingTimeViewProps> = ({ data }
 
         {/* Heatmap Grid */}
         <div className="overflow-x-auto pb-2">
-          <div className="min-w-[540px]">
+          <div className="w-full">
             {/* Hour headers */}
             <div className="grid grid-cols-10 gap-1.5 mb-1.5 text-center text-[10px] font-mono text-gray-400">
               <div className="text-left pl-2">Day</div>
