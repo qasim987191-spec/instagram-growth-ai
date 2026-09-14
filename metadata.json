@@ -1,0 +1,6 @@
+{
+  "name": "Instagram Growth AI Analyzer",
+  "description": "Engineered & Owned by Mohd Kasim. Understand your Instagram, analyze reels, monetize sponsorships, automate DMs, and grow smarter.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

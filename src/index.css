@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #0B0C10;
+  color: #E2E8F0;
+  overflow-x: hidden;
+}
+
+/* Custom modern scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0E1017;
+}
+::-webkit-scrollbar-thumb {
+  background: #232736;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3B4254;
+}
+
+/* Gradient text utility */
+.ig-gradient-text {
+  background: linear-gradient(135deg, #FCAF45 0%, #F77737 25%, #E1306C 50%, #C13584 75%, #833AB4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.ig-gradient-bg {
+  background: linear-gradient(135deg, #833AB4 0%, #E1306C 50%, #F77737 100%);
+}
+
+.ig-gradient-border {
+  position: relative;
+  background: #141622;
+  border-radius: 1rem;
+}
+.ig-gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: calc(1rem + 1px);
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(225,48,108,0.5), rgba(131,58,180,0.3), rgba(247,119,55,0.4));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Glow effects */
+.ig-glow {
+  box-shadow: 0 0 25px -5px rgba(225, 48, 108, 0.25);
+}
