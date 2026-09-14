@@ -63,3 +63,20 @@ body {
 .ig-glow {
   box-shadow: 0 0 25px -5px rgba(225, 48, 108, 0.25);
 }
+
+/* Lock Native App Feel - Prevent Browser Text Selection & Callouts */
+* {
+  -webkit-touch-callout: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+body {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  overscroll-behavior-y: contain !important;
+}
+
+input, textarea {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+}
