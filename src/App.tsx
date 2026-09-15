@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavTab, InstagramProfile } from './types';
 import {
   DEMO_PROFILE,
@@ -15,7 +15,8 @@ import {
   DEMO_AUTO_DM_RULES,
   DEMO_AUTO_DM_LOGS,
 } from './data/mockData';
-import { getMetaConfig } from './services/metaApiService';
+import { getMetaConfig, disconnectInstagram } from './services/metaApiService';
+import { getSavedProfile, saveActiveProfile, clearActiveProfile } from './services/profileStorage';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { BottomNav } from './components/BottomNav';
@@ -40,8 +41,18 @@ import { SettingsView } from './components/SettingsView';
 
 export const App: React.FC = () => {
   const metaConfig = getMetaConfig();
-  const [profile, setProfile] = useState<InstagramProfile>(DEMO_PROFILE);
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(metaConfig.isDemoMode ?? true);
+  
+  // Persistent Profile initialization - Never resets on page refresh!
+  const [profile, setProfile] = useState<InstagramProfile>(() => {
+    const saved = getSavedProfile();
+    return saved || DEMO_PROFILE;
+  });
+  
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+    const saved = getSavedProfile();
+    return saved.isDemo ?? (metaConfig.isDemoMode ?? true);
+  });
+
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
   const [isConnectModalOpen, setIsConnectModalOpen] = useState<boolean>(false);
   const [isInstallModalOpen, setIsInstallModalOpen] = useState<boolean>(false);
@@ -61,153 +72,171 @@ export const App: React.FC = () => {
   const [growthPlan] = useState(DEMO_GROWTH_PLAN);
   const [weeklyReport] = useState(DEMO_WEEKLY_REPORT);
 
-  const bestReel = [...reels].sort((a, b) => b.views - a.views)[0];
-  const weakestReel = [...reels].sort((a, b) => a.views - b.views)[0];
-
   const handleConnected = (newProfile: InstagramProfile) => {
     setProfile(newProfile);
     setIsDemoMode(false);
-    setCurrentTab('dashboard');
+    saveActiveProfile(newProfile);
   };
 
   const handleUseDemo = () => {
+    clearActiveProfile();
+    disconnectInstagram();
     setProfile(DEMO_PROFILE);
     setIsDemoMode(true);
-    setCurrentTab('dashboard');
+    setIsConnectModalOpen(false);
   };
 
   return (
     <div className="min-h-screen bg-[#0A0B10] text-gray-100 flex flex-col font-sans overflow-x-hidden w-full max-w-full selection:bg-pink-500/30 selection:text-pink-200">
-      {/* Top Navbar */}
+      {/* Top Navigation */}
       <Navbar
         currentTab={currentTab}
-        onTabChange={setCurrentTab}
+        onTabChange={(tab) => {
+          setCurrentTab(tab);
+          setMobileMenuOpen(false);
+        }}
         profile={profile}
         isDemoMode={isDemoMode}
         onOpenConnectModal={() => setIsConnectModalOpen(true)}
-        onToggleDemoMode={handleUseDemo}
+        onToggleDemoMode={() => setIsDemoMode(!isDemoMode)}
         mobileMenuOpen={mobileMenuOpen}
         setMobileMenuOpen={setMobileMenuOpen}
         onOpenInstallModal={() => setIsInstallModalOpen(true)}
       />
 
-      {/* Main Layout - 100% responsive full screen */}
+      {/* Main Container */}
       <div className="flex-1 flex w-full max-w-7xl mx-auto overflow-x-hidden">
-        {/* Desktop Sidebar (Hidden on mobile) */}
-        {currentTab !== 'landing' && (
-          <div className="hidden md:block w-64 flex-shrink-0">
-            <Sidebar
-              currentTab={currentTab}
-              onTabChange={setCurrentTab}
-              onOpenInstallModal={() => setIsInstallModalOpen(true)}
-            />
-          </div>
-        )}
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block flex-shrink-0">
+          <Sidebar
+            currentTab={currentTab}
+            onTabChange={setCurrentTab}
+            isDemoMode={isDemoMode}
+            onOpenConnectModal={() => setIsConnectModalOpen(true)}
+          />
+        </div>
 
-        {/* Mobile Slide-out Menu */}
+        {/* Mobile Flyout Drawer Menu */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 bg-black/85 md:hidden pt-16 px-3 pb-24 overflow-y-auto">
-            <div className="bg-[#12141F] rounded-2xl border border-[#23273D] p-3 shadow-2xl">
-              <Sidebar
-                currentTab={currentTab}
-                onTabChange={(tab) => {
-                  setCurrentTab(tab);
-                  setMobileMenuOpen(false);
-                }}
-                closeMobileMenu={() => setMobileMenuOpen(false)}
-                onOpenInstallModal={() => {
-                  setMobileMenuOpen(false);
-                  setIsInstallModalOpen(true);
-                }}
-              />
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-3 py-1.5 rounded-lg bg-[#1E2235] text-xs text-gray-300 font-semibold"
+              >
+                Close Menu ✕
+              </button>
             </div>
+            <Sidebar
+              currentTab={currentTab}
+              onTabChange={(tab) => {
+                setCurrentTab(tab);
+                setMobileMenuOpen(false);
+              }}
+              isDemoMode={isDemoMode}
+              onOpenConnectModal={() => {
+                setIsConnectModalOpen(true);
+                setMobileMenuOpen(false);
+              }}
+            />
           </div>
         )}
 
-        {/* Main Content Area - Full width, no horizontal scroll, comfortable padding */}
+        {/* Main Content Area */}
         <main className="flex-1 w-full min-w-0 p-3 sm:p-5 lg:p-8 pb-24 md:pb-8 overflow-x-hidden">
-          {currentTab === 'landing' && (
-            <LandingPage
-              onConnectClick={() => setIsConnectModalOpen(true)}
-              onTryDemoClick={handleUseDemo}
-            />
-          )}
-
           {currentTab === 'dashboard' && (
             <DashboardView
               profile={profile}
               scores={scores}
               reels={reels}
-              onNavigate={setCurrentTab}
+              reachData={reachData}
+              recommendations={recommendations}
+              isDemoMode={isDemoMode}
+              onOpenConnectModal={() => setIsConnectModalOpen(true)}
+              onNavigate={(tab) => setCurrentTab(tab as NavTab)}
             />
+          )}
+
+          {currentTab === 'landing' && (
+            <LandingPage onGetStarted={() => setCurrentTab('dashboard')} />
           )}
 
           {currentTab === 'profile-analysis' && (
             <ProfileAnalysisView
               profile={profile}
               audit={profileAudit}
+              isDemoMode={isDemoMode}
             />
           )}
 
-          {currentTab === 'reels' && (
-            <ReelAnalyzerView reels={reels} />
+          {currentTab === 'reel-analyzer' && (
+            <ReelAnalyzerView
+              reels={reels}
+              isDemoMode={isDemoMode}
+            />
           )}
 
-          {currentTab === 'reach' && (
-            <ReachAnalysisView reachData={reachData} />
+          {currentTab === 'reach-analysis' && (
+            <ReachAnalysisView
+              reachData={reachData}
+              profile={profile}
+              isDemoMode={isDemoMode}
+            />
           )}
 
           {currentTab === 'recommendations' && (
-            <GrowthRecommendationsView initialRecommendations={recommendations} />
+            <GrowthRecommendationsView
+              recommendations={recommendations}
+              niche={profile.niche}
+            />
+          )}
+
+          {currentTab === 'hook-generator' && (
+            <HookGeneratorView initialNiche={profile.niche} />
+          )}
+
+          {currentTab === 'caption-generator' && (
+            <CaptionGeneratorView initialNiche={profile.niche} />
+          )}
+
+          {currentTab === 'shayari-generator' && (
+            <ShayariGeneratorView />
+          )}
+
+          {currentTab === 'reel-ideas' && (
+            <ReelIdeasView
+              niche={profile.niche}
+              profile={profile}
+            />
+          )}
+
+          {currentTab === 'posting-time' && (
+            <BestPostingTimeView postingData={postingTime} />
+          )}
+
+          {currentTab === 'growth-plan' && (
+            <GrowthPlanView plan={growthPlan} />
+          )}
+
+          {currentTab === 'weekly-report' && (
+            <WeeklyReportView
+              report={weeklyReport}
+              profile={profile}
+            />
           )}
 
           {currentTab === 'collaborations' && (
             <PaidCollaborationView
-              profile={profile}
-              initialDeals={collaborations}
+              collaborations={collaborations}
               rateCard={rateCard}
+              profile={profile}
             />
           )}
 
           {currentTab === 'auto-dm' && (
             <AutoDmView
-              initialRules={autoDmRules}
-              initialLogs={autoDmLogs}
-            />
-          )}
-
-          {currentTab === 'hooks' && (
-            <HookGeneratorView initialNiche={profile.niche} />
-          )}
-
-          {currentTab === 'captions' && (
-            <CaptionGeneratorView />
-          )}
-
-          {currentTab === 'shayari' && (
-            <ShayariGeneratorView />
-          )}
-
-          {currentTab === 'ideas' && (
-            <ReelIdeasView
-              niche={profile.niche}
-              topReels={reels}
-            />
-          )}
-
-          {currentTab === 'posting-time' && (
-            <BestPostingTimeView data={postingTime} />
-          )}
-
-          {currentTab === 'growth-plan' && (
-            <GrowthPlanView initialPlan={growthPlan} />
-          )}
-
-          {currentTab === 'reports' && (
-            <WeeklyReportView
-              report={weeklyReport}
-              bestReel={bestReel}
-              weakestReel={weakestReel}
+              rules={autoDmRules}
+              logs={autoDmLogs}
             />
           )}
 
@@ -215,24 +244,24 @@ export const App: React.FC = () => {
             <SettingsView
               profile={profile}
               isDemoMode={isDemoMode}
-              onProfileUpdated={setProfile}
               onOpenConnectModal={() => setIsConnectModalOpen(true)}
-              onSwitchToDemo={handleUseDemo}
+              onResetDemo={handleUseDemo}
             />
           )}
         </main>
       </div>
 
-      {/* Mobile Native App Bottom Navigation Bar */}
-      {currentTab !== 'landing' && (
-        <BottomNav
-          currentTab={currentTab}
-          onTabChange={setCurrentTab}
-          onOpenConnect={() => setIsConnectModalOpen(true)}
-        />
-      )}
+      {/* Modern Native Bottom Navigation Bar for Mobile */}
+      <BottomNav
+        currentTab={currentTab}
+        onTabChange={(tab) => {
+          setCurrentTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenMenu={() => setMobileMenuOpen(true)}
+      />
 
-      {/* Official Connect Instagram Modal */}
+      {/* Modals */}
       <ConnectModal
         isOpen={isConnectModalOpen}
         onClose={() => setIsConnectModalOpen(false)}
@@ -240,7 +269,6 @@ export const App: React.FC = () => {
         onUseDemo={handleUseDemo}
       />
 
-      {/* Install App Modal */}
       <InstallAppModal
         isOpen={isInstallModalOpen}
         onClose={() => setIsInstallModalOpen(false)}
@@ -248,5 +276,3 @@ export const App: React.FC = () => {
     </div>
   );
 };
-
-export default App;

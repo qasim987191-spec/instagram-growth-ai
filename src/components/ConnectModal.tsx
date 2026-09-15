@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { InstagramIcon } from './InstagramIcon';
 import { REQUIRED_META_PERMISSIONS, verifyMetaToken, saveMetaConfig, getMetaConfig } from '../services/metaApiService';
+import { saveActiveProfile } from '../services/profileStorage';
 import { InstagramProfile } from '../types';
 
 interface ConnectModalProps {
@@ -32,8 +33,9 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
   const currentConfig = getMetaConfig();
   const [tab, setTab] = useState<'username' | 'token'>('username');
   const [usernameInput, setUsernameInput] = useState('');
-  const [nicheInput, setNicheInput] = useState('Tech & AI Creator');
-  const [followersInput, setFollowersInput] = useState('12500');
+  const [nicheInput, setNicheInput] = useState('Tech & AI');
+  const [followersInput, setFollowersInput] = useState('1200');
+  const [followingInput, setFollowingInput] = useState('23');
   const [bioInput, setBioInput] = useState('');
   const [appId, setAppId] = useState(currentConfig.appId || '');
   const [accessToken, setAccessToken] = useState(currentConfig.accessToken || '');
@@ -54,7 +56,9 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
     setVerificationError(null);
 
     setTimeout(() => {
-      const followersNum = parseInt(followersInput.replace(/,/g, ''), 10) || 10500;
+      const followersNum = parseInt(followersInput.replace(/,/g, ''), 10) || 0;
+      const followingNum = parseInt(followingInput.replace(/,/g, ''), 10) || 0;
+      
       const customProfile: InstagramProfile = {
         id: `user_${cleanHandle}_${Date.now()}`,
         username: cleanHandle,
@@ -63,14 +67,16 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
         bio: bioInput.trim() || `Creator & Digital Storyteller | Helping people grow | DM for Business Inquiries`,
         externalUrl: `https://instagram.com/${cleanHandle}`,
         followersCount: followersNum,
-        followingCount: Math.round(followersNum * 0.08) + 120,
-        mediaCount: Math.max(14, Math.round(followersNum / 200)),
+        followingCount: followingNum,
+        mediaCount: Math.max(5, Math.round(followersNum / 150) || 12),
         niche: nicheInput,
         category: 'Digital Creator',
         isVerified: followersNum > 50000,
         isDemo: false,
       };
 
+      // Save permanently to local storage
+      saveActiveProfile(customProfile);
       saveMetaConfig({
         isConnected: true,
         appId: 'public_creator',
@@ -82,7 +88,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
       onConnected(customProfile);
       setIsVerifying(false);
       onClose();
-    }, 600);
+    }, 400);
   };
 
   // 2. Official Meta Token Connect (For Advanced Developers)
@@ -99,6 +105,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
     setIsVerifying(false);
 
     if (result.valid && result.profile) {
+      saveActiveProfile(result.profile);
       saveMetaConfig({
         isConnected: true,
         appId: appId.trim(),
@@ -106,6 +113,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
         permissionsGranted: ['instagram_basic', 'instagram_manage_insights'],
         isDemoMode: false,
       });
+
       onConnected(result.profile);
       onClose();
     } else {
@@ -135,18 +143,18 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
           </div>
         </div>
 
-        {/* Method Tabs */}
-        <div className="flex rounded-xl bg-[#181B2C] p-1 border border-[#2B314E] mb-4">
+        {/* Tabs: Handle vs Official Meta Graph API */}
+        <div className="flex p-1 rounded-xl bg-[#181A28] border border-[#272B40] mb-5">
           <button
             onClick={() => { setTab('username'); setVerificationError(null); }}
             className={`flex-1 py-2 text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5 ${
               tab === 'username'
-                ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-md'
+                ? 'bg-gradient-to-r from-pink-500 to-purple-600 text-white shadow-md'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            <Zap className="w-3.5 h-3.5" />
-            <span>Instant Connect (Handle)</span>
+            <User className="w-3.5 h-3.5" />
+            <span>Instant Handle (Username)</span>
           </button>
           <button
             onClick={() => { setTab('token'); setVerificationError(null); }}
@@ -169,7 +177,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
               <div>
                 <p className="font-semibold text-emerald-200">100% Safe & Password Free</p>
                 <p className="text-[11px] text-emerald-300/80 leading-tight">
-                  No Instagram password required. Public profile metrics & AI evaluation are loaded instantly.
+                  No Instagram password required. Your exact follower & following counts will be permanently saved!
                 </p>
               </div>
             </div>
@@ -184,7 +192,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
                   type="text"
                   value={usernameInput}
                   onChange={(e) => setUsernameInput(e.target.value)}
-                  placeholder="qasim_official (apna ya kisi ka bhi handle)"
+                  placeholder="e.g. qasim987191"
                   className="w-full pl-8 pr-3.5 py-2.5 rounded-xl bg-[#161826] border border-[#2C314C] text-xs text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 font-mono"
                 />
               </div>
@@ -193,46 +201,59 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-gray-300 block mb-1">
-                  Approx Followers
+                  Followers Count
                 </label>
                 <input
                   type="text"
                   value={followersInput}
                   onChange={(e) => setFollowersInput(e.target.value)}
-                  placeholder="e.g. 5200"
+                  placeholder="e.g. 500"
                   className="w-full px-3.5 py-2 rounded-xl bg-[#161826] border border-[#2C314C] text-xs text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 font-mono"
                 />
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-300 block mb-1">
-                  Creator Niche
+                  Following Count
                 </label>
-                <select
-                  value={nicheInput}
-                  onChange={(e) => setNicheInput(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-[#161826] border border-[#2C314C] text-xs text-white focus:outline-none focus:border-pink-500"
-                >
-                  <option value="Tech & AI">Tech & AI</option>
-                  <option value="Fitness & Health">Fitness & Health</option>
-                  <option value="Fashion & Lifestyle">Fashion & Lifestyle</option>
-                  <option value="Comedy & Reels">Comedy & Entertainment</option>
-                  <option value="Business & Finance">Business & Finance</option>
-                  <option value="Food & Travel">Food & Travel</option>
-                  <option value="Education & Study">Education & Study</option>
-                  <option value="Poetry & Shayari">Poetry & Shayari</option>
-                </select>
+                <input
+                  type="text"
+                  value={followingInput}
+                  onChange={(e) => setFollowingInput(e.target.value)}
+                  placeholder="e.g. 23"
+                  className="w-full px-3.5 py-2 rounded-xl bg-[#161826] border border-[#2C314C] text-xs text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 font-mono"
+                />
               </div>
             </div>
 
             <div>
               <label className="text-xs font-semibold text-gray-300 block mb-1">
-                Bio (Optional - for AI Bio Optimizer)
+                Creator Niche / Category
+              </label>
+              <select
+                value={nicheInput}
+                onChange={(e) => setNicheInput(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl bg-[#161826] border border-[#2C314C] text-xs text-white focus:outline-none focus:border-pink-500"
+              >
+                <option value="Tech & AI">Tech & AI</option>
+                <option value="Fitness & Health">Fitness & Health</option>
+                <option value="Fashion & Lifestyle">Fashion & Lifestyle</option>
+                <option value="Comedy & Reels">Comedy & Entertainment</option>
+                <option value="Business & Finance">Business & Finance</option>
+                <option value="Food & Travel">Food & Travel</option>
+                <option value="Education & Study">Education & Study</option>
+                <option value="Poetry & Shayari">Poetry & Shayari</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-gray-300 block mb-1">
+                Bio (Optional)
               </label>
               <input
                 type="text"
                 value={bioInput}
                 onChange={(e) => setBioInput(e.target.value)}
-                placeholder="Digital Creator | DM for Collabs | New video every week"
+                placeholder="Creator | DM for Collabs | New video every week"
                 className="w-full px-3.5 py-2 rounded-xl bg-[#161826] border border-[#2C314C] text-xs text-white placeholder-gray-500 focus:outline-none focus:border-pink-500"
               />
             </div>
@@ -254,7 +275,7 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
               ) : (
                 <>
                   <InstagramIcon className="w-4 h-4" />
-                  <span>Analyze @{usernameInput.trim().replace(/^@/, '') || 'my_account'} Now</span>
+                  <span>Connect & Save @{usernameInput.trim().replace(/^@/, '') || 'my_account'}</span>
                 </>
               )}
             </button>
@@ -291,35 +312,63 @@ export const ConnectModal: React.FC<ConnectModalProps> = ({
               />
             </div>
 
+            <div>
+              <label className="text-xs font-semibold text-gray-300 block mb-1">
+                Meta App ID (Optional)
+              </label>
+              <input
+                type="text"
+                value={appId}
+                onChange={(e) => setAppId(e.target.value)}
+                placeholder="e.g. 159847291048572"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#161826] border border-[#2C314C] text-xs text-white placeholder-gray-500 focus:outline-none focus:border-pink-500 font-mono"
+              />
+            </div>
+
             {verificationError && (
-              <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400" />
-                <span>{verificationError}</span>
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-400 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-semibold">Meta Token Verification Notice</p>
+                  <p className="text-[11px] text-rose-300/90 leading-tight">{verificationError}</p>
+                </div>
               </div>
             )}
 
             <button
               onClick={handleVerifyAndConnectToken}
               disabled={isVerifying}
-              className="w-full py-2.5 rounded-xl text-xs font-bold text-white ig-gradient-bg hover:opacity-95 shadow-md shadow-pink-500/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full py-3 rounded-xl text-xs font-bold text-white ig-gradient-bg hover:opacity-95 shadow-md shadow-pink-500/20 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
-              {isVerifying ? <span>Verifying with Meta...</span> : <span>Authorize Meta Graph Token</span>}
+              {isVerifying ? (
+                <span>Verifying with Meta Graph API...</span>
+              ) : (
+                <>
+                  <Key className="w-4 h-4" />
+                  <span>Connect with Meta Graph Token</span>
+                </>
+              )}
             </button>
           </div>
         )}
 
-        {/* Demo fallback */}
-        <div className="pt-3 border-t border-[#25293E]">
+        {/* Footer info */}
+        <div className="pt-3 border-t border-[#222538] flex items-center justify-between text-[11px] text-gray-500">
           <button
-            onClick={() => {
-              onUseDemo();
-              onClose();
-            }}
-            className="w-full py-2.5 rounded-xl text-xs font-semibold text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition flex items-center justify-center gap-2 cursor-pointer"
+            onClick={onUseDemo}
+            className="text-pink-400 hover:text-pink-300 underline cursor-pointer"
           >
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            <span>Launch Realistic Demo Mode (Aarav Sharma Tech)</span>
+            Reset to Sample Demo Profile
           </button>
+          <a
+            href="https://developers.facebook.com/tools/explorer/"
+            target="_blank"
+            rel="noreferrer"
+            className="text-gray-400 hover:text-gray-300 flex items-center gap-1"
+          >
+            <span>Graph API Explorer</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
         </div>
       </div>
     </div>
