@@ -14,6 +14,7 @@ export type NavTab =
   | 'posting-time'
   | 'growth-plan'
   | 'reports'
+  | 'ai-chat'
   | 'settings';
 
 export interface InstagramProfile {

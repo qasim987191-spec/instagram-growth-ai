@@ -25,6 +25,7 @@ import { ConnectModal } from './components/ConnectModal';
 import { InstallAppModal } from './components/InstallAppModal';
 import { DashboardView } from './components/DashboardView';
 import { ProfileAnalysisView } from './components/ProfileAnalysisView';
+import { AiAssistantChatView } from './components/AiAssistantChatView';
 import { ReelAnalyzerView } from './components/ReelAnalyzerView';
 import { ReachAnalysisView } from './components/ReachAnalysisView';
 import { GrowthRecommendationsView } from './components/GrowthRecommendationsView';
@@ -148,6 +149,14 @@ export const App: React.FC = () => {
               scores={scores}
               reels={reels}
               onNavigate={setCurrentTab}
+            />
+          )}
+
+                    {currentTab === 'ai-chat' && (
+            <AiAssistantChatView
+              profile={profile}
+              scores={scores}
+              reels={reels}
             />
           )}
 

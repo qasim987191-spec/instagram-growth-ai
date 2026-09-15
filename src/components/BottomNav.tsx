@@ -2,6 +2,7 @@ import React from 'react';
 import { NavTab } from '../types';
 import {
   LayoutDashboard,
+  MessageSquare,
   Sparkles,
   Video,
   BarChart3,
@@ -25,7 +26,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
   const primaryTabs: { id: NavTab; label: string; icon: React.FC<{ className?: string }> }[] = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
     { id: 'reels', label: 'Reels AI', icon: Video },
-    { id: 'profile-analysis', label: 'Audit', icon: Sparkles },
+    { id: 'ai-chat', label: 'AI Chat', icon: MessageSquare },
     { id: 'reach', label: 'Reach', icon: BarChart3 },
     { id: 'collaborations', label: 'Earn', icon: DollarSign },
     { id: 'settings', label: 'Settings', icon: Settings },

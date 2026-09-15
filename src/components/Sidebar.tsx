@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavTab } from '../types';
+import { MessageSquare } from 'lucide-react';
 import {
   LayoutDashboard,
   UserCheck,
@@ -35,6 +36,7 @@ interface NavItemConfig {
 
 const NAV_ITEMS: NavItemConfig[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'ai-chat', label: 'AI Growth Chat', icon: MessageSquare, badge: 'Live AI' },
   { id: 'profile-analysis', label: 'Profile Analysis', icon: UserCheck },
   { id: 'reels', label: 'Reel Analyzer', icon: Film, badge: 'Insights' },
   { id: 'reach', label: 'Reach Analysis', icon: TrendingUp },
