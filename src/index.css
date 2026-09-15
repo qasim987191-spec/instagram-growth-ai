@@ -6,16 +6,8 @@
   color-scheme: dark;
 }
 
-/* Base Body Styles - Normal native touch scroll */
-html {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  overflow-x: hidden;
-  touch-action: pan-y;
-}
-
-body {
+/* 1. NATIVE APP FEEL: Disable text highlight/selection across the UI except inputs */
+html, body {
   margin: 0;
   padding: 0;
   width: 100%;
@@ -24,9 +16,16 @@ body {
   color: #E2E8F0;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   overflow-x: hidden;
-  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
+  
+  /* Native App UI feels - no text selection when tapping */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+
+  -webkit-touch-callout: none; /* Disables the long-press callout menu (Copy/Share) in mobile browsers */
 }
 
 #root {
@@ -37,16 +36,25 @@ body {
   overflow-x: hidden;
 }
 
-/* Prevent accidental blue tap highlights */
+/* Prevent accidental blue tap highlights and standard web callouts */
 * {
   -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
 }
 
-/* Allow normal text selection in inputs */
+/* Allow text selection ONLY in input fields and textareas */
 input, textarea, [contenteditable="true"] {
-  user-select: text !important;
   -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default !important;
+}
+
+/* Native buttons active scale touch feedback */
+button:active, a:active {
+  transform: scale(0.97);
+  transition: transform 0.08s ease-in-out;
 }
 
 /* Custom modern scrollbar */
@@ -81,6 +89,7 @@ input, textarea, [contenteditable="true"] {
   background: #141622;
   border-radius: 1rem;
 }
+
 .ig-gradient-border::before {
   content: "";
   position: absolute;
